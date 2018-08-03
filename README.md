@@ -5,7 +5,7 @@
 
 Subsurface salt is a blessing and a curse for Oil and Gas exploration and production. In one hand salt intrusions help creating and sealing oil and gas traps that can be very prolific. In the other hand there are many hazards related to drilling through or near salt domes.
 
-![Salt Dome Illustration by the Louisiana Department of Natural Resources](./img/Salt Dome Illustration by the Louisiana Department of Natural Resources.jpg )
+![Salt Dome Illustration by the Louisiana Department of Natural Resources]('./img/Salt Dome Illustration by the Louisiana Department of Natural Resources.jpg')
 
 Salt Dome Illustration by the Louisiana Department of Natural Resources.
 
