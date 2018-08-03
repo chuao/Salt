@@ -295,7 +295,7 @@ def define_nn_mlp_model(Xtrn, ytrn):
     model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=["accuracy"] ) # (keep)
     return model
 
-def print_output(model, ytrn, ytst):
+def print_output(model, Xtrn, Xtst, ytrn, ytst):
     '''prints model accuracy results'''
     ytrn_pred = model.predict_classes(Xtrn, verbose=0).ravel()
     ytst_pred = model.predict_classes(Xtst, verbose=0).ravel()
@@ -317,12 +317,12 @@ def run_mlp(X, y, test_size=0.2, random_state=42):
                       batch_size=200,
                       verbose=1,
                       validation_split=0.1)
-    print_output(model, ytrn, ytst)
+    print_output(model, Xtrn, Xtst, ytrn, ytst)
 
 
 
     yprob =  model.predict_proba(Xtst, verbose=0).ravel()
-    plot_roc(yprob, ytrue)
+    plot_roc(yprob, ytst)
     return model
 
 def predict_mask(seis_file_name, model, filter_size):

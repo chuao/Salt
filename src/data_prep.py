@@ -10,6 +10,6 @@ from os.path import isfile, join
 from salt import *
 
 images_to_X_y(path='data/checked/',
-                  percent=20,
+                  percent=.2,
                   filter_size=9,
                   save=True)

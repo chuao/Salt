@@ -7,8 +7,9 @@ y = pickle.load(file_y)
 file_y.close()
 imgs_files = open('./data/images.pkl','rb')
 selected_files = pickle.load(imgs_files)
-file_files.close()
+imgs_files.close()
 
+from salt import *
 from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers.core import Dense
