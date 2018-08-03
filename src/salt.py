@@ -19,7 +19,7 @@ import pandas as pd
 # in a way which allows for quickly human inspection of the two images together.
 # And create a directory full of the combined images for manual inspection.
 
-def read_mask(filename, path='../data/masks/', normalize=True):
+def read_mask(filename, path='data/masks/', normalize=True):
 
     mask_f_name = path + filename
     mask = imio.imread(mask_f_name)
@@ -27,7 +27,7 @@ def read_mask(filename, path='../data/masks/', normalize=True):
         mask = (mask - mask.min()) / (mask.max() - mask.min())
     return mask
 
-def read_seis(filename, path='../data/images/', normalize=True):
+def read_seis(filename, path='data/images/', normalize=True):
     seis_f_name = path + filename
     seis = imio.imread(seis_f_name)
     seis = (seis[:,:,0]).reshape(seis.shape[0], seis.shape[1])
@@ -35,11 +35,10 @@ def read_seis(filename, path='../data/images/', normalize=True):
         seis = (seis - seis.min()) / (seis.max() - seis.min())
     return seis
 
-
 def mask_seis(filename,
-              mask_path='../data/masks/',
-              seis_path = '../data/images/',
-              comb_path = '../data/combo/',
+              mask_path='data/masks/',
+              seis_path = 'data/images/',
+              comb_path = 'data/combo/',
               save = False):
     import skimage.io as imio
     import numpy as np
@@ -56,12 +55,10 @@ def mask_seis(filename,
     if save:
         plt.imsave(comb_path + filename, comb)
 
-
-
 # Now we gather a list of all the mask filenames, with the hope that
 # each of them have a corresponding seismic image.
 
-def mask_dir(path ='../data/masks/'):
+def mask_dir(path ='data/masks/'):
     for filename in listdir(path):
         mask_seis(filename, save=True)
 
@@ -98,12 +95,10 @@ def rle(arr, inverse=False, rows=101):
         all_tog = all_tog[all_tog[:,2]==1][:,0:2]
         return all_tog.ravel()
 
-
-def encode_all_masks(path ='../data/masks/'):
+def encode_all_masks(path ='data/masks/'):
     import re
-    path = '../data/masks/'
     files = [f for f in listdir(path) if isfile(join(path, f))]
-    out_file_name = '../my_train.txt'
+    out_file_name = 'my_train.txt'
     with open(out_file_name, 'w') as output_file:
         output_file.write('id,rle_mask\n')
         for f in files:
@@ -121,8 +116,9 @@ def encode_all_masks(path ='../data/masks/'):
     output_file.close()
 
 def get_X_y(img_lbl_name, filter_size=5,       # images and masks/lables have the same names
-               mask_path='../data/masks/',      # but live in different directories
-               seis_path = '../data/images/',):
+               mask_path='data/masks/',      # but live in different directories
+               seis_path = 'data/images/',
+               get_y=True):
         '''
         function to build X and y from images and masks
         Input: image and masks names (list or array)
@@ -137,7 +133,8 @@ def get_X_y(img_lbl_name, filter_size=5,       # images and masks/lables have th
 
         #Load the files:
 
-        mask = read_mask(img_lbl_name, path=mask_path)
+        if get_y:
+            mask = read_mask(img_lbl_name, path=mask_path)
         seis = read_seis(img_lbl_name, path=seis_path)
 
         filter_half = (filter_size - 1) // 2
@@ -164,28 +161,27 @@ def get_X_y(img_lbl_name, filter_size=5,       # images and masks/lables have th
             else:
                 X = np.vstack((X, seis[r0:r1, c0:c1].ravel()))
 
-        return X, y
+        if get_y:
+            return X, y
+        else:
+            return X
 
-
-def images_to_X_y(path='../data/checked/',
+def images_to_X_y(path='data/checked/',
                   percent=10,
                   filter_size=9,
                   save=True):
     '''
     This Function
-
     '''
     import datetime
     start = datetime.datetime.now()
     files = [f for f in listdir(path) if isfile(join(path, f))]
-
     # to use the entire dataset make percent = 100 :D
     size = int(len(files) * percent) // 100
-    active_files = np.random.choice(files, size, replace=False)
-
+    selected_files = np.random.choice(files, size, replace=False)
     first = True
-    for f in active_files:
-#        print(f)    # it is here for debugging
+    for f in selected_files:
+        print(f)    # it is here for debugging
         if first:
             X, y = get_X_y(f, filter_size=filter_size)
             first = False
@@ -193,37 +189,47 @@ def images_to_X_y(path='../data/checked/',
             X_tmp, y_tmp = get_X_y(f, filter_size=filter_size)
             X = np.vstack((X, X_tmp))
             y = np.concatenate((y, y_tmp))
-#    print(X.shape, y.shape)    # it is here for debugging
+            #    print(X.shape, y.shape)    # it is here for debugging
 
     end = datetime.datetime.now()
     print(end - start)
 
-    # Save for future used
+    if save:
+        save_X_y(X, y, selected_files, path='data/')
+    #return X, y, selected_files
 
-        import pickle
+def save_X_y(X, y, selected_files, path='data/'):
+    '''
+    This function saves X, y and the list of converted
+    images to Pickle objects for faster loading
 
-        X_file_name = '../data/X.pkl'
-        while ~os.path.isfile(X_file_name):
-            X_file_name = X_file_name[:-4] + '-1' + '.pkl'
-        file_X = open(X_file_name,'wb')
-        pickle.dump(X, file_X)
-        file_X.close()
-
-        y_file_name = '../data/y.pkl'
-        while ~os.path.isfile(y_file_name):
-            y_file_name = y_file_name[:-4] + '-1' + '.pkl'
-        file_y = open(y_file_name,'wb')
-        pickle.dump(y, file_y)
-        file_y.close()
-
-        imgs_file_name = '../data/images.pkl'
-        while ~os.path.isfile(imgs_file_name):
-            imgs_file_name = imgs_file_name[:-4] + '-1' + '.pkl'
-        imgs_files = open(imgs_file_name,'wb')
-        pickle.dump(active_files, imgs_files)
-        imgs_files.close()
+    Input: Directory where image names are to be
+           saved.
+    '''
+    from os import listdir
+    from os.path import isfile, join
+    import pickle
+    X_file_name = join(path,'X.pkl')
+    while isfile(X_file_name):
+        X_file_name = X_file_name[:-4] + '-1' + '.pkl'
+    file_X = open(X_file_name,'wb')
+    pickle.dump(X, file_X)
+    file_X.close()
 
 
+    y_file_name = join(path, 'y.pkl')
+    while isfile(y_file_name):
+        y_file_name = y_file_name[:-4] + '-1' + '.pkl'
+    file_y = open(y_file_name,'wb')
+    pickle.dump(y, file_y)
+    file_y.close()
+
+    imgs_file_name = join(path, 'images.pkl')
+    while isfile(imgs_file_name):
+        imgs_file_name = imgs_file_name[:-4] + '-1' + '.pkl'
+    imgs_files = open(imgs_file_name,'wb')
+    pickle.dump(selected_files, imgs_files)
+    imgs_files.close()
 
 def plot_roc(ytrue, yprob):
     '''
@@ -243,8 +249,6 @@ def plot_roc(ytrue, yprob):
     plt.xlabel('False Positive Rate')
     plt.show()
 
-
-
 def run_logistic(X, y, test_size=0.2, random_state=42):
     from sklearn.linear_model import LogisticRegression
     from sklearn.model_selection import train_test_split
@@ -261,9 +265,6 @@ def run_logistic(X, y, test_size=0.2, random_state=42):
     yprd = probs[:,1]
     plot_roc(ytst, yprd)
     return model
-
-
-
 
 def define_nn_mlp_model(Xtrn, ytrn):
     ''' defines multi-layer-perceptron neural network '''
@@ -303,8 +304,6 @@ def print_output(model, ytrn, ytst):
     test_acc = np.sum(ytst == ytst_pred, axis=0) / Xtst.shape[0]
     print('Test accuracy: %.2f%%' % (test_acc * 100))
 
-
-
 def run_mlp(X, y, test_size=0.2, random_state=42):
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import auc, roc_auc_score, roc_curve
@@ -325,3 +324,8 @@ def run_mlp(X, y, test_size=0.2, random_state=42):
     yprob =  model.predict_proba(Xtst, verbose=0).ravel()
     plot_roc(yprob, ytrue)
     return model
+
+def predict_mask(seis_file_name, model, filter_size):
+    X = get_X_y(seis_file_name, filter_size, get_y=False)
+    ypred = model.fit(X)
+    return y.reshape(X.shape)

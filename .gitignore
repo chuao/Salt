@@ -2,15 +2,11 @@ all.txt
 checked
 checked.txt
 combo
-depths.csv
 files.pkl
 Fixable-maybe
-images
-masks
 masks.txt
 sample_submission.csv
 susp
 susp.txt
-train.csv
 X.pkl
 y.pkl
